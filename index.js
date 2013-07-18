@@ -23,6 +23,9 @@
  */
 
 var fondue = require("fondue");
+var crypto = require("crypto");
+
+var cache = {}; // digest -> string
 
 function mergeInto(options, defaultOptions) {
 	for (var key in options) {
@@ -33,8 +36,20 @@ function mergeInto(options, defaultOptions) {
 	return defaultOptions;
 }
 
+function instrument(src, fondueOptions) {
+	var md5 = crypto.createHash("md5");
+	md5.update(JSON.stringify(fondueOptions) + "||" + src);
+	var digest = md5.digest("hex");
+	if (digest in cache) {
+	    return cache[digest];
+	} else {
+		console.log("instrumenting", fondueOptions.path);
+	    return cache[digest] = fondue.instrument(src, fondueOptions);
+	}
+}
+
 function processJavaScript(src, fondueOptions) {
-	return fondue.instrument(src, fondueOptions);
+	return instrument(src, fondueOptions);
 }
 
 function processHTML(src, fondueOptions) {
@@ -62,7 +77,7 @@ function processHTML(src, fondueOptions) {
 		var loc = scriptLocs[i];
 		var script = src.slice(loc.start, loc.end);
 		var prefix = src.slice(0, loc.start).replace(/[^\n]/g, " "); // padding it out so line numbers make sense
-		src = src.slice(0, loc.start) + fondue.instrument(prefix + script, fondueOptions) + src.slice(loc.end);
+		src = src.slice(0, loc.start) + instrument(prefix + script, fondueOptions) + src.slice(loc.end);
 	}
 
 	src = "<script>\n" + fondue.instrumentationPrefix(fondueOptions) + "\n</script>\n" + src;
@@ -76,6 +91,8 @@ module.exports = function (options) {
 	return function(req, res, next){
 		var written = [];
 		var write = res.write, end = res.end;
+
+		res.header("Cache-Control", "no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0");
 
 		res.write = function(chunk) {
 			written.push(chunk);
