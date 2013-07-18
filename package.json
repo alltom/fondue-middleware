@@ -1,0 +1,22 @@
+{
+	"name" : "fondue-middleware",
+	"description" : "instruments JavaScript in .js and .html files with fondue",
+	"license" : "MIT",
+	"author" : "Tom Lieber <tom@alltom.com>",
+	"version" : "0.0.1",
+	"main" : "./index.js",
+	"repository" : {
+		"type" : "git",
+		"url" : "https://github.com/alltom/fondue-middleware.git"
+	},
+	"dependencies" : {
+		"fondue" : "0.4.x"
+	},
+	"keywords" : [
+		"source",
+		"trace",
+		"instrumentation",
+		"middleware",
+		"http"
+	]
+}
