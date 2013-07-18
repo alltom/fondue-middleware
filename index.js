@@ -102,7 +102,7 @@ module.exports = function (options) {
 			if (chunk) this.write.apply(this, arguments);
 
 			var type = res.getHeader("Content-Type");
-			var fondueOptions = mergeInto(options, { path: req.url, include_prefix: false });
+			var fondueOptions = mergeInto(options, { path: unescape(req.url), include_prefix: false });
 
 			if (/application\/javascript/.test(type)) {
 				var src = Buffer.concat(written).toString();
