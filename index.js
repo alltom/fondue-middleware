@@ -43,7 +43,6 @@ function instrument(src, fondueOptions) {
 	if (digest in cache) {
 	    return cache[digest];
 	} else {
-		console.log("instrumenting", fondueOptions.path);
 	    return cache[digest] = fondue.instrument(src, fondueOptions);
 	}
 }
