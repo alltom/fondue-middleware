@@ -27,7 +27,9 @@ var fondueMiddleware = require("./index");
 var app = express();
 
 app.use(express.logger());
-app.use(fondueMiddleware({ name: "__tracer", tracer_name: "__tracer" }));
-app.use(express.static(__dirname));
+app.use(fondueMiddleware({}));
+app.use(express.static(process.cwd(), { maxAge: 0 }));
+
+console.log("serving", process.cwd());
 
 app.listen(3000);
