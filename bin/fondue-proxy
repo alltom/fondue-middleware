@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*
  * Copyright (c) 2013 Massachusetts Institute of Technology, Adobe Systems
  * Incorporated, and other contributors. All rights reserved.
@@ -22,14 +24,12 @@
  *
  */
 
-var express = require("express");
-var fondueMiddleware = require("./index");
-var app = express();
+var httpProxy = require("http-proxy");
+var fondueMiddleware = require("../");
 
-app.use(express.logger());
-app.use(fondueMiddleware({}));
-app.use(express.static(process.cwd(), { maxAge: 0 }));
+console.log("proxying to http://localhost:8080 on http://localhost:3000");
 
-console.log("serving", process.cwd());
-
-app.listen(3000);
+httpProxy.createServer(
+	fondueMiddleware({}),
+	8080, "localhost"
+).listen(3000);

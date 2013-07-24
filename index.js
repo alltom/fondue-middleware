@@ -89,9 +89,15 @@ module.exports = function (options) {
 
 	return function(req, res, next){
 		var written = [];
-		var write = res.write, end = res.end;
+		var writeHead = res.writeHead, write = res.write, end = res.end;
 
-		res.header("Cache-Control", "no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0");
+		// advise against caching so that we can turn on and off instrumentation as we please
+		res.setHeader("Cache-Control", "no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0");
+
+		res.writeHead = function () {
+			res.removeHeader("Content-Length"); // since we don't know what length the rewritten files will be
+			writeHead.apply(res, arguments);
+		};
 
 		res.write = function(chunk) {
 			written.push(chunk);
@@ -107,12 +113,10 @@ module.exports = function (options) {
 				var src = Buffer.concat(written).toString();
 				src = processJavaScript(src, fondueOptions);
 				written = [src];
-				res.removeHeader("Content-Length");
 			} else if (/text\/html/.test(type)) {
 				var src = Buffer.concat(written).toString();
 				src = processHTML(src, fondueOptions);
 				written = [src];
-				res.removeHeader("Content-Length");
 			}
 
 			written.forEach(function (c) {

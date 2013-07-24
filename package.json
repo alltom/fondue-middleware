@@ -10,7 +10,12 @@
 		"url" : "https://github.com/alltom/fondue-middleware.git"
 	},
 	"dependencies" : {
-		"fondue" : "0.4.x"
+		"fondue" : "0.4.x",
+		"http-proxy" : "0.10.x"
+	},
+	"bin" : {
+		"node-theseus" : "./bin/fondue-static",
+		"node-theseus" : "./bin/fondue-proxy"
 	},
 	"keywords" : [
 		"source",
