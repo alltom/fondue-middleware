@@ -75,11 +75,17 @@ function processHTML(src, fondueOptions) {
 	for (var i = scriptLocs.length - 1; i >= 0; i--) {
 		var loc = scriptLocs[i];
 		var script = src.slice(loc.start, loc.end);
-		var prefix = src.slice(0, loc.start).replace(/[^\n]/g, " "); // padding it out so line numbers make sense
-		src = src.slice(0, loc.start) + instrument(prefix + script, fondueOptions) + src.slice(loc.end);
+		src = src.slice(0, loc.start) + instrument(script, fondueOptions) + src.slice(loc.end);
 	}
 
-	src = "<script>\n" + fondue.instrumentationPrefix(fondueOptions) + "\n</script>\n" + src;
+	var doctype = "";
+	var doctypeMatch = /^(<!doctype[^\n]+\n)/i.exec(src);
+	if (doctypeMatch) {
+		doctype = doctypeMatch[1];
+		src = src.slice(doctypeMatch[1].length);
+	}
+
+	src = doctype + "<script>\n" + fondue.instrumentationPrefix(fondueOptions) + "\n</script>\n" + src;
 
 	return src;
 }
