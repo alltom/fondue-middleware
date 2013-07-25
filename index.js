@@ -22,6 +22,10 @@
  *
  */
 
+/* global unescape */
+
+"use strict";
+
 var fondue = require("fondue");
 var crypto = require("crypto");
 
@@ -114,19 +118,20 @@ module.exports = function (options) {
 
 			var type = res.getHeader("Content-Type");
 			var fondueOptions = mergeInto(options, { path: unescape(req.url), include_prefix: false });
+			var src;
 
 			if (/application\/javascript/.test(type)) {
-				var src = Buffer.concat(written).toString();
+				src = Buffer.concat(written).toString();
 				src = processJavaScript(src, fondueOptions);
 				written = [src];
 			} else if (/text\/html/.test(type)) {
-				var src = Buffer.concat(written).toString();
+				src = Buffer.concat(written).toString();
 				src = processHTML(src, fondueOptions);
 				written = [src];
 			}
 
 			written.forEach(function (c) {
-				write.call(res, c)
+				write.call(res, c);
 			});
 
 			return end.call(res);
