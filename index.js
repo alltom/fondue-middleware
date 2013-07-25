@@ -42,7 +42,7 @@ function mergeInto(options, defaultOptions) {
 
 function instrument(src, fondueOptions) {
 	var md5 = crypto.createHash("md5");
-	md5.update(JSON.stringify(fondueOptions) + "||" + src);
+	md5.update(JSON.stringify(arguments));
 	var digest = md5.digest("hex");
 	if (digest in cache) {
 	    return cache[digest];
