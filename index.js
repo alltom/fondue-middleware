@@ -26,8 +26,8 @@
 
 "use strict";
 
-var fondue = require("fondue");
 var crypto = require("crypto");
+var fondue = require("fondue");
 
 var cache = {}; // digest -> string
 
