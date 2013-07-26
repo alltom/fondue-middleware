@@ -47,7 +47,7 @@ function instrument(src, fondueOptions) {
 	if (digest in cache) {
 	    return cache[digest];
 	} else {
-	    return cache[digest] = fondue.instrument(src, fondueOptions);
+	    return cache[digest] = fondue.instrument(src, fondueOptions).toString();
 	}
 }
 
