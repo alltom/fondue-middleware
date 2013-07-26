@@ -81,7 +81,8 @@ function processHTML(src, fondueOptions) {
 		var script = src.slice(loc.start, loc.end);
 		var options = mergeInto(fondueOptions, {});
 		options.path = options.path + "-" + i;
-		src = src.slice(0, loc.start) + instrument(script, options) + src.slice(loc.end);
+		var prefix = src.slice(0, loc.start).replace(/[^\n]/g, " "); // padding it out so line numbers make sense
+		src = src.slice(0, loc.start) + instrument(prefix + script, options) + src.slice(loc.end);
 	}
 
 	var doctype = "";
