@@ -11,7 +11,8 @@
 	},
 	"dependencies" : {
 		"fondue" : "0.4.x",
-		"http-proxy" : "0.10.x"
+		"http-proxy" : "0.10.x",
+		"express" : "3.3.x"
 	},
 	"bin" : {
 		"node-theseus" : "./bin/fondue-static",
