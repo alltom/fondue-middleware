@@ -3,7 +3,7 @@
 	"description" : "instruments JavaScript in .js and .html files with fondue",
 	"license" : "MIT",
 	"author" : "Tom Lieber <tom@alltom.com>",
-	"version" : "0.0.1",
+	"version" : "0.0.2",
 	"main" : "./index.js",
 	"repository" : {
 		"type" : "git",
