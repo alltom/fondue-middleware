@@ -29,8 +29,17 @@
 var crypto = require("crypto");
 var fondue = require("fondue");
 
-var cache = {}; // digest -> string
+// instrumented javascript cache
+var cache = {}; // MD5 digest -> string
 
+/**
+ Usage:
+
+   function foo(options) {
+     options = mergeInto(options, { bar: "baz" });
+     // ...
+   }
+ */
 function mergeInto(options, defaultOptions) {
 	for (var key in options) {
 		if (options[key] !== undefined) {
@@ -40,7 +49,10 @@ function mergeInto(options, defaultOptions) {
 	return defaultOptions;
 }
 
-function instrument(src, fondueOptions) {
+/**
+ Returns instrumented JavaScript. From the cache, if it's there.
+ */
+function instrumentJavaScript(src, fondueOptions) {
 	var md5 = crypto.createHash("md5");
 	md5.update(JSON.stringify(arguments));
 	var digest = md5.digest("hex");
@@ -51,11 +63,10 @@ function instrument(src, fondueOptions) {
 	}
 }
 
-function processJavaScript(src, fondueOptions) {
-	return instrument(src, fondueOptions);
-}
-
-function processHTML(src, fondueOptions) {
+/**
+ Returns the given HTML after instrumenting all JavaScript found in <script> tags.
+ */
+function instrumentHTML(src, fondueOptions) {
 	var scriptLocs = [];
 	var scriptBeginRegexp = /<\s*script[^>]*>/ig;
 	var scriptEndRegexp = /<\s*\/\s*script/i;
@@ -82,9 +93,10 @@ function processHTML(src, fondueOptions) {
 		var options = mergeInto(fondueOptions, {});
 		options.path = options.path + "-" + i;
 		var prefix = src.slice(0, loc.start).replace(/[^\n]/g, " "); // padding it out so line numbers make sense
-		src = src.slice(0, loc.start) + instrument(prefix + script, options) + src.slice(loc.end);
+		src = src.slice(0, loc.start) + instrumentJavaScript(prefix + script, options) + src.slice(loc.end);
 	}
 
+	// remove the doctype if there was one (it gets put back below)
 	var doctype = "";
 	var doctypeMatch = /^(<!doctype[^\n]+\n)/i.exec(src);
 	if (doctypeMatch) {
@@ -92,11 +104,18 @@ function processHTML(src, fondueOptions) {
 		src = src.slice(doctypeMatch[1].length);
 	}
 
+	// assemble!
 	src = doctype + "<script>\n" + fondue.instrumentationPrefix(fondueOptions) + "\n</script>\n" + src;
 
 	return src;
 }
 
+/**
+ Middleware. Filters text/html responses with instrumentHTML(). Filters
+ application/javascript responses with instrument JavaScript().
+
+ Also sends no-cache headers.
+ */
 module.exports = function (options) {
 	options = options || {};
 
@@ -125,11 +144,11 @@ module.exports = function (options) {
 
 			if (/application\/javascript/.test(type)) {
 				src = Buffer.concat(written).toString();
-				src = processJavaScript(src, fondueOptions);
+				src = instrumentJavaScript(src, fondueOptions);
 				written = [src];
 			} else if (/text\/html/.test(type)) {
 				src = Buffer.concat(written).toString();
-				src = processHTML(src, fondueOptions);
+				src = instrumentHTML(src, fondueOptions);
 				written = [src];
 			}
 

@@ -27,9 +27,10 @@
 var httpProxy = require("http-proxy");
 var fondueMiddleware = require("../");
 
-console.log("proxying to http://localhost:8080 on http://localhost:3000");
+console.log("starting a server at http://localhost:3000");
+console.log("proxying requests to http://localhost:8080");
 
 httpProxy.createServer(
-	fondueMiddleware({}),
+	fondueMiddleware(),
 	8080, "localhost"
 ).listen(3000);

@@ -29,7 +29,7 @@ var fondueMiddleware = require("../");
 var app = express();
 
 app.use(express.logger());
-app.use(fondueMiddleware({}));
+app.use(fondueMiddleware());
 app.use(express.static(process.cwd(), { maxAge: 0 }));
 
 console.log("serving " + process.cwd() + " on http://localhost:3000");
