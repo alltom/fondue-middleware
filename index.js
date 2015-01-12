@@ -28,6 +28,7 @@
 
 var crypto = require("crypto");
 var fondue = require("fondue");
+var zlib = require("zlib");
 
 // instrumented javascript cache
 var cache = {}; // MD5 digest -> string
@@ -122,11 +123,17 @@ module.exports = function (options) {
 	return function(req, res, next){
 		var written = [];
 		var writeHead = res.writeHead, write = res.write, end = res.end;
+		var encoding;
 
 		// advise against caching so that we can turn on and off instrumentation as we please
 		res.setHeader("Cache-Control", "no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0");
 
 		res.writeHead = function () {
+			encoding = res.getHeader("Content-Encoding");
+			if (encoding === 'gzip') {
+				res.removeHeader("Content-Encoding");
+			}
+
 			res.removeHeader("Content-Length"); // since we don't know what length the rewritten files will be
 			writeHead.apply(res, arguments);
 		};
@@ -138,25 +145,44 @@ module.exports = function (options) {
 		res.end = function(chunk) {
 			if (chunk) this.write.apply(this, arguments);
 
-			var type = res.getHeader("Content-Type");
-			var fondueOptions = mergeInto(options, { path: unescape(req.url), include_prefix: false });
-			var src;
+			var buffer = Buffer.concat(written);
 
-			if (/application\/javascript/.test(type)) {
-				src = Buffer.concat(written).toString();
-				src = instrumentJavaScript(src, fondueOptions);
-				written = [src];
-			} else if (/text\/html/.test(type)) {
-				src = Buffer.concat(written).toString();
-				src = instrumentHTML(src, fondueOptions);
-				written = [src];
+			if (encoding === 'gzip') {
+				zlib.gunzip(buffer, function (err, decoded) {
+					if (err) {
+						console.log("gzip error: " + err);
+						return;
+					}
+
+					buffer = decoded;
+					written = [buffer]
+					finish();
+				});
+			} else {
+				finish();
 			}
 
-			written.forEach(function (c) {
-				write.call(res, c);
-			});
+			function finish() {
+				var type = res.getHeader("Content-Type");
+				var fondueOptions = mergeInto(options, { path: unescape(req.url), include_prefix: false });
+				var src;
 
-			return end.call(res);
+				if (/application\/javascript/.test(type)) {
+					src = buffer.toString();
+					src = instrumentJavaScript(src, fondueOptions);
+					written = [src];
+				} else if (/text\/html/.test(type)) {
+					src = buffer.toString();
+					src = instrumentHTML(src, fondueOptions);
+					written = [src];
+				}
+
+				written.forEach(function (c) {
+					write.call(res, c);
+				});
+
+				return end.call(res);
+			}
 		};
 
 		next();
