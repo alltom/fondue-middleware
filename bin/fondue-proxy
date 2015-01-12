@@ -25,12 +25,26 @@
  */
 
 var httpProxy = require("http-proxy");
+var http = require("http");
 var fondueMiddleware = require("../");
 
-console.log("starting a server at http://localhost:3000");
-console.log("proxying requests to http://localhost:8080");
+var listenPort = 3000;
+var proxiedPort = 8080;
 
-httpProxy.createServer(
-	fondueMiddleware(),
-	8080, "localhost"
-).listen(3000);
+console.log("starting a server at http://localhost:" + listenPort);
+console.log("proxying requests to http://localhost:" + proxiedPort);
+
+var proxy = httpProxy.createProxyServer();
+var middleware = fondueMiddleware();
+
+proxy.on("error", function (err, req, res) {
+	console.log("proxy error", err);
+	res.end();
+});
+
+http.createServer(function(req, res) {
+	console.log(req.method, req.url);
+	middleware(req, res, function () {
+		proxy.web(req, res, { target: "http://localhost:" + proxiedPort });
+	});
+}).listen(listenPort);
