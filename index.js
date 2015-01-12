@@ -92,7 +92,7 @@ function instrumentHTML(src, fondueOptions) {
 		var loc = scriptLocs[i];
 		var script = src.slice(loc.start, loc.end);
 		var options = mergeInto(fondueOptions, {});
-		options.path = options.path + "-" + i;
+		options.path = options.path + "-script-" + i;
 		var prefix = src.slice(0, loc.start).replace(/[^\n]/g, " "); // padding it out so line numbers make sense
 		src = src.slice(0, loc.start) + instrumentJavaScript(prefix + script, options) + src.slice(loc.end);
 	}
