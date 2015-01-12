@@ -167,7 +167,7 @@ module.exports = function (options) {
 				var fondueOptions = mergeInto(options, { path: unescape(req.url), include_prefix: false });
 				var src;
 
-				if (/application\/javascript/.test(type)) {
+				if (/(application|text)\/javascript/.test(type)) {
 					src = buffer.toString();
 					src = instrumentJavaScript(src, fondueOptions);
 					written = [src];
